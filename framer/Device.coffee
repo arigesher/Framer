@@ -23,10 +23,14 @@ DeviceView.toggleKeyboard()
 
 """
 
+Utils = require "./Utils"
+{_}   = require "./Underscore"
+
 DeviceViewHostedImagesUrl = ""
 DeviceViewDefaultDevice = "iphone-5s–spacegray"
 
 {BaseClass} = require "./BaseClass"
+{Layer}     = require "./Layer"
 
 class exports.DeviceView extends BaseClass
 

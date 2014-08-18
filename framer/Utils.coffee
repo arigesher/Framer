@@ -1,40 +1,10 @@
 {_} = require "./Underscore"
-{Session} = require "./Session"
 {Screen} = require "./Screen"
 
 Utils = {}
 
 Utils.reset = ->
-
-	# There is no use calling this even before the dom is ready
-	if __domReady is false
-		return
-
-	# Reset all pending operations to the dom
-	__domComplete = []
-
-	# Reset the print console layer
-	Session.printLayer = null
-
-	# Remove all the listeners so we don't leak memory
-	if Session._LayerList
-		for layer in Session._LayerList
-			layer.removeAllListeners()
-
-	Session._LayerList = []
-	Session._RootElement?.innerHTML = ""
-
-	if Session._delayTimers
-		for delayTimer in Session._delayTimers
-			clearTimeout delayTimer
-		Session._delayTimers = []
-
-	if Session._delayIntervals
-		for delayInterval in Session._delayIntervals
-			clearInterval delayInterval
-		Session._delayIntervals = []
-
-
+	Framer.Session.reset()
 
 Utils.getValue = (value) ->
 	return value() if _.isFunction value
@@ -101,14 +71,14 @@ Utils.getTime = -> Date.now() / 1000
 
 Utils.delay = (time, f) ->
 	timer = setTimeout f, time * 1000
-	Session._delayTimers ?= []
-	Session._delayTimers.push timer
+	Framer.Session._delayTimers ?= []
+	Framer.Session._delayTimers.push timer
 	return timer
-	
+
 Utils.interval = (time, f) ->
 	timer = setInterval f, time * 1000
-	Session._delayIntervals ?= []
-	Session._delayIntervals.push timer
+	Framer.Session._delayIntervals ?= []
+	Framer.Session._delayIntervals.push timer
 	return timer
 
 Utils.debounce = (threshold=0.1, fn, immediate) ->
@@ -151,7 +121,7 @@ Utils.randomNumber = (a=0, b=1) ->
 	Utils.mapRange Math.random(), 0, 1, a, b
 
 Utils.labelLayer = (layer, text, style={}) ->
-	
+
 	style = _.extend
 		font: "10px/1em Menlo"
 		lineHeight: "#{layer.height}px"
@@ -188,18 +158,18 @@ Utils.uuid = ->
 Utils.arrayFromArguments = (args) ->
 
 	# Convert an arguments object to an array
-	
+
 	if _.isArray args[0]
 		return args[0]
-	
+
 	Array.prototype.slice.call args
 
 Utils.cycle = ->
-	
+
 	# Returns a function that cycles through a list of values with each call.
-	
+
 	args = Utils.arrayFromArguments arguments
-	
+
 	curr = -1
 	return ->
 		curr++
@@ -215,7 +185,7 @@ Utils.toggle = Utils.cycle
 
 Utils.isWebKit = ->
 	window.WebKitCSSMatrix isnt null
-	
+
 Utils.isTouch = ->
 	window.ontouchstart is null
 
@@ -241,7 +211,7 @@ Utils.pathJoin = ->
 
 ######################################################
 # MATH FUNCTIONS
-		
+
 Utils.round = (value, decimals) ->
 	d = Math.pow 10, decimals
 	Math.round(value * d) / d
@@ -253,10 +223,10 @@ Utils.mapRange = (value, fromLow, fromHigh, toLow, toHigh) ->
 
 # Kind of similar as above but with a better syntax and a limiting option
 Utils.modulate = (value, rangeA, rangeB, limit=false) ->
-	
+
 	[fromLow, fromHigh] = rangeA
 	[toLow, toHigh] = rangeB
-	
+
 	result = toLow + (((value - fromLow) / (fromHigh - fromLow)) * (toHigh - toLow))
 
 	if limit is true
@@ -305,16 +275,16 @@ Utils.domCompleteCancel = (f) ->
 	__domComplete = _.without __domComplete, f
 
 Utils.domLoadScript = (url, callback) ->
-	
+
 	script = document.createElement "script"
 	script.type = "text/javascript"
 	script.src = url
-	
+
 	script.onload = callback
-	
+
 	head = document.getElementsByTagName("head")[0]
 	head.appendChild script
-	
+
 	script
 
 Utils.domLoadData = (path, callback) ->
@@ -323,11 +293,11 @@ Utils.domLoadData = (path, callback) ->
 
 	# request.addEventListener "progress", updateProgress, false
 	# request.addEventListener "abort", transferCanceled, false
-	
+
 	request.addEventListener "load", ->
 		callback null, request.responseText
 	, false
-	
+
 	request.addEventListener "error", ->
 		callback true, null
 	, false
@@ -374,13 +344,13 @@ Utils.domLoadScriptSync = (path) ->
 
 Utils.pointMin = ->
 	points = Utils.arrayFromArguments arguments
-	point = 
+	point =
 		x: _.min point.map (size) -> size.x
 		y: _.min point.map (size) -> size.y
 
 Utils.pointMax = ->
 	points = Utils.arrayFromArguments arguments
-	point = 
+	point =
 		x: _.max point.map (size) -> size.x
 		y: _.max point.map (size) -> size.y
 
@@ -428,12 +398,12 @@ Utils.sizeMax = ->
 Utils.frameGetMinX = (frame) -> frame.x
 Utils.frameSetMinX = (frame, value) -> frame.x = value
 
-Utils.frameGetMidX = (frame) -> 
+Utils.frameGetMidX = (frame) ->
 	if frame.width is 0 then 0 else frame.x + (frame.width / 2.0)
 Utils.frameSetMidX = (frame, value) ->
 	frame.x = if frame.width is 0 then 0 else value - (frame.width / 2.0)
 
-Utils.frameGetMaxX = (frame) -> 
+Utils.frameGetMaxX = (frame) ->
 	if frame.width is 0 then 0 else frame.x + frame.width
 Utils.frameSetMaxX = (frame, value) ->
 	frame.x = if frame.width is 0 then 0 else value - frame.width
@@ -441,12 +411,12 @@ Utils.frameSetMaxX = (frame, value) ->
 Utils.frameGetMinY = (frame) -> frame.y
 Utils.frameSetMinY = (frame, value) -> frame.y = value
 
-Utils.frameGetMidY = (frame) -> 
+Utils.frameGetMidY = (frame) ->
 	if frame.height is 0 then 0 else frame.y + (frame.height / 2.0)
 Utils.frameSetMidY = (frame, value) ->
 	frame.y = if frame.height is 0 then 0 else value - (frame.height / 2.0)
 
-Utils.frameGetMaxY = (frame) -> 
+Utils.frameGetMaxY = (frame) ->
 	if frame.height is 0 then 0 else frame.y + frame.height
 Utils.frameSetMaxY = (frame, value) ->
 	frame.y = if frame.height is 0 then 0 else value - frame.height
@@ -490,9 +460,9 @@ Utils.convertPoint = (input, layerA, layerB) ->
 
 	superLayersA = layerA?.superLayers() or []
 	superLayersB = layerB?.superLayers() or []
-	
+
 	superLayersB.push layerB if layerB
-	
+
 	for layer in superLayersA
 		point.x += layer.x - layer.scrollFrame.x
 		point.y += layer.y - layer.scrollFrame.y
@@ -500,7 +470,7 @@ Utils.convertPoint = (input, layerA, layerB) ->
 	for layer in superLayersB
 		point.x -= layer.x + layer.scrollFrame.x
 		point.y -= layer.y + layer.scrollFrame.y
-	
+
 	return point
 
 _.extend exports, Utils

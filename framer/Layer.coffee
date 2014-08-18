@@ -1,6 +1,6 @@
 {_} = require "./Underscore"
 
-Utils = require "./Utils"
+Utils   = require "./Utils"
 
 {Config} = require "./Config"
 {Defaults} = require "./Defaults"
@@ -52,6 +52,7 @@ class exports.Layer extends BaseClass
 
 	constructor: (options={}) ->
 
+		Session.new() unless Session._RootElement?
 		Session._registerLayer @
 
 		# Special power setting for 2d rendering path. Only enable this
@@ -625,4 +626,4 @@ class exports.Layer extends BaseClass
 	on: @::addListener
 	off: @::removeListener
 
-exports.Layer.Layers = -> Session._LayerList()
+exports.Layer.Layers = -> Framer.Session._LayerList()
