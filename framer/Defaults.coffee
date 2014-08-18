@@ -2,7 +2,7 @@
 
 Utils = require "./Utils"
 
-Originals = 
+Originals =
 	Layer:
 		backgroundColor: "rgba(0,124,255,.5)"
 		width: 100
@@ -29,7 +29,7 @@ exports.Defaults =
 
 		# Include a secret property with the default keys
 		# options._defaultValues = defaults
-		
+
 		options
 
 	reset: ->

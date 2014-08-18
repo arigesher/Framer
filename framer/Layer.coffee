@@ -12,8 +12,6 @@ Utils   = require "./Utils"
 {LayerStates} = require "./LayerStates"
 {LayerDraggable} = require "./LayerDraggable"
 
-Session = require "./Session"
-
 layerProperty = (name, cssProperty, fallback, validator, set) ->
 	exportable: true
 	default: fallback
@@ -51,9 +49,7 @@ frameProperty = (name) ->
 class exports.Layer extends BaseClass
 
 	constructor: (options={}) ->
-
-		Session.new() unless Session._RootElement?
-		Session._registerLayer @
+		Framer.Session._registerLayer @
 
 		# Special power setting for 2d rendering path. Only enable this
 		# if you know what you are doing. See LayerStyle for more info.
@@ -305,7 +301,7 @@ class exports.Layer extends BaseClass
 		Utils.domComplete @__insertElement
 
 	__insertElement: =>
-		Session._RootElement.appendChild @_element
+		Framer.Session._RootElement.appendChild @_element
 
 	destroy: ->
 
@@ -315,7 +311,7 @@ class exports.Layer extends BaseClass
 		@_element.parentNode?.removeChild @_element
 		@removeAllListeners()
 
-		Session._unregisterLayer @
+		Framer.Session._unregisterLayer @
 
 	##############################################################
 	## COPYING
@@ -470,7 +466,7 @@ class exports.Layer extends BaseClass
 		get: ->
 			# If there is no superLayer we need to walk through the root
 			if @superLayer is null
-				return Session._siblings @
+				return Framer.Session._siblings @
 
 			return _.without @superLayer.subLayers, @
 

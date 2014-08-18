@@ -96,8 +96,8 @@ class exports.DeviceView extends BaseClass
 
     _.extend @, device
 
-    @phone.image = "images/#{device.deviceImage}"
-    @phone.width = device.deviceImageWidth
+    @phone.image  = deviceImageUrl device.deviceImage
+    @phone.width  = device.deviceImageWidth
     @phone.height = device.deviceImageHeight
 
     @_renderKeyboard()
@@ -105,6 +105,8 @@ class exports.DeviceView extends BaseClass
 
     @update()
 
+  element: ->
+    @phone._element
 
   _calculatePhoneScale: ->
     # If a scale was given we use that
@@ -192,7 +194,7 @@ class exports.DeviceView extends BaseClass
   _renderKeyboard:  ->
     orientation = if Math.abs(@orientation) == 90 then 'landscape' else 'portrait'
 
-    @keyboard.image  = "images/#{@keyboards[orientation].image}"
+    @keyboard.image  =  deviceImageUrl @keyboards[orientation].image
     @keyboard.width  =  @keyboards[orientation].width
     @keyboard.height =  @keyboards[orientation].height
 
@@ -300,6 +302,12 @@ Devices =
   "ipad-mini-spacegray": _.extend {}, iPadMiniBaseDevice,
     name: "iPad Mini Space Gray"
     deviceImage: "ipad-mini-spacegray.png"
+
+deviceImageUrl = (name) ->
+  # TODO: correct url here
+  return "http://cdn.#{name}" unless FramerStudio?
+  FramerStudio.resourcePath name
+
 
   # iPad Air
 #   "ipad-air-silver": _.extend {}, iPadAirBaseDevice,

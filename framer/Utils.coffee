@@ -4,7 +4,13 @@
 Utils = {}
 
 Utils.reset = ->
-	Framer.Session.reset()
+	# There is no use calling this even before the dom is ready
+  return if __domReady is false
+
+  # Reset all pending operations to the dom
+  __domComplete = []
+
+	Framer?.Session.reset()
 
 Utils.getValue = (value) ->
 	return value() if _.isFunction value
