@@ -28,7 +28,8 @@ Framer.SpringDHOAnimator = (require "./Animators/SpringDHOAnimator").SpringDHOAn
 Framer.SpringRK4Animator = (require "./Animators/SpringRK4Animator").SpringRK4Animator
 Framer.Importer = (require "./Importer").Importer
 Framer.Debug = (require "./Debug").Debug
-Framer.Session = (require "./Session").Session
+Framer.Device = (require "./Device")
+Framer.Session = (require "./Session")
 Framer.Extras = require "./Extras/Extras"
 
 window.Framer = Framer if window

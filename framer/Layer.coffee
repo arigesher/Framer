@@ -4,7 +4,6 @@ Utils = require "./Utils"
 
 {Config} = require "./Config"
 {Defaults} = require "./Defaults"
-{Session} = require "./Session"
 {BaseClass} = require "./BaseClass"
 {EventEmitter} = require "./EventEmitter"
 {Animation} = require "./Animation"
@@ -13,8 +12,7 @@ Utils = require "./Utils"
 {LayerStates} = require "./LayerStates"
 {LayerDraggable} = require "./LayerDraggable"
 
-Session._RootElement = null
-Session._LayerList = []
+Session = require "./Session"
 
 layerProperty = (name, cssProperty, fallback, validator, set) ->
 	exportable: true
@@ -54,7 +52,7 @@ class exports.Layer extends BaseClass
 
 	constructor: (options={}) ->
 
-		Session._LayerList.push @
+		Session._registerLayer @
 
 		# Special power setting for 2d rendering path. Only enable this
 		# if you know what you are doing. See LayerStyle for more info.
@@ -103,10 +101,10 @@ class exports.Layer extends BaseClass
 	@define "opacity", layerProperty "opacity", "opacity", 1, _.isNumber
 	@define "index", layerProperty "index", "zIndex", 0, _.isNumber
 	@define "clip", layerProperty "clip", "overflow", true, _.isBool
-	
+
 	@define "scrollHorizontal", layerProperty "scrollHorizontal", "overflowX", false, _.isBool, (layer, value) ->
 		layer.ignoreEvents = false if value is true
-	
+
 	@define "scrollVertical", layerProperty "scrollVertical", "overflowY", false, _.isBool, (layer, value) ->
 		layer.ignoreEvents = false if value is true
 
@@ -178,7 +176,7 @@ class exports.Layer extends BaseClass
 	@define "name",
 		exportable: true
 		default: ""
-		get: -> 
+		get: ->
 			@_getPropertyValue "name"
 		set: (value) ->
 			@_setPropertyValue "name", value
@@ -236,11 +234,11 @@ class exports.Layer extends BaseClass
 	center: ->
 		@frame = @centerFrame() # Center  in superLayer
 		@
-	
+
 	centerX: (offset=0) ->
 		@x = @centerFrame().x + offset # Center x in superLayer
 		@
-	
+
 	centerY: (offset=0) ->
 		@y = @centerFrame().y + offset # Center y in superLayer
 		@
@@ -305,15 +303,7 @@ class exports.Layer extends BaseClass
 	_insertElement: ->
 		Utils.domComplete @__insertElement
 
-	__createRootElement: =>
-		element = document.createElement "div"
-		element.id = "FramerRoot"
-		_.extend element.style, Config.rootBaseCSS
-		document.body.appendChild element
-		element
-
 	__insertElement: =>
-		Session._RootElement ?= @__createRootElement()
 		Session._RootElement.appendChild @_element
 
 	destroy: ->
@@ -324,8 +314,7 @@ class exports.Layer extends BaseClass
 		@_element.parentNode?.removeChild @_element
 		@removeAllListeners()
 
-		Session._LayerList = _.without Session._LayerList, @
-
+		Session._unregisterLayer @
 
 	##############################################################
 	## COPYING
@@ -478,11 +467,9 @@ class exports.Layer extends BaseClass
 	@define "siblingLayers",
 		exportable: false
 		get: ->
-
 			# If there is no superLayer we need to walk through the root
 			if @superLayer is null
-				return _.filter Session._LayerList, (layer) =>
-					layer isnt @ and layer.superLayer is null
+				return Session._siblings @
 
 			return _.without @superLayer.subLayers, @
 
@@ -621,7 +608,7 @@ class exports.Layer extends BaseClass
 			listener = listener.modifiedListener
 
 		super eventName, listener
-		
+
 		@_element.removeEventListener eventName, listener
 
 		if @_eventListeners
@@ -638,4 +625,4 @@ class exports.Layer extends BaseClass
 	on: @::addListener
 	off: @::removeListener
 
-exports.Layer.Layers = -> _.clone Session._LayerList
+exports.Layer.Layers = -> Session._LayerList()
