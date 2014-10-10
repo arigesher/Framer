@@ -123,8 +123,8 @@ describe "Layer", ->
 			# layer.style["background-image"].should.contain "file://"
 			# layer.style["background-image"].should.contain "?nocache="
 
-			layer.style["background-size"].should.equal "cover"
-			layer.style["background-repeat"].should.equal "no-repeat"
+			layer.computedStyle()["background-size"].should.equal "cover"
+			layer.computedStyle()["background-repeat"].should.equal "no-repeat"
 
 			layer.properties.image.should.equal imagePath
 
@@ -211,6 +211,7 @@ describe "Layer", ->
 			layer.scroll = true
 			layer.scroll.should.equal true
 			layer.style["overflow"].should.equal "scroll"
+			
 			layer.ignoreEvents.should.equal false
 
 		it "should set scrollHorizontal", ->
@@ -231,6 +232,43 @@ describe "Layer", ->
 			layer = new Layer backgroundColor: "red"
 			layer.backgroundColor.should.equal "red"
 			layer.style["backgroundColor"].should.equal "red"
+
+		it "should check value type", ->
+
+			f = ->
+				layer = new Layer
+				layer.x = "hello"
+			f.should.throw()
+
+		it "should set borderRadius", ->
+
+			testBorderRadius = (layer, value) ->
+
+				layer.style["border-top-left-radius"].should.equal "#{value} #{value}"
+				layer.style["border-top-right-radius"].should.equal "#{value} #{value}"
+				layer.style["border-bottom-left-radius"].should.equal "#{value} #{value}"
+				layer.style["border-bottom-right-radius"].should.equal "#{value} #{value}"
+
+			layer = new Layer
+
+			layer.borderRadius = 10
+			layer.borderRadius.should.equal 10
+
+			testBorderRadius(layer, "10px")
+
+			layer.borderRadius = "50%"
+			layer.borderRadius.should.equal "50%"
+
+			testBorderRadius(layer, "50%")
+
+
+		it "should set perspective", ->
+
+			layer = new Layer
+			layer.perspective = 500
+
+			layer.style["-webkit-perspective"].should.equal("500")
+
 
 
 	describe "Filter Properties", ->
@@ -351,7 +389,7 @@ describe "Layer", ->
 			
 			layer = new Layer
 			
-			assert.equal layer._element.parentNode.id, "FramerRoot"
+			assert.equal layer._element.parentNode.id, "FramerContextRoot-Default"
 			assert.equal layer.superLayer, null
 
 		it "should check superLayer", ->
@@ -374,7 +412,7 @@ describe "Layer", ->
 
 			layerB.superLayer = null
 
-			assert.equal layerB._element.parentNode.id, "FramerRoot"
+			assert.equal layerB._element.parentNode.id, "FramerContextRoot-Default"
 			assert.equal layerB.superLayer, null
 
 		it "should list sublayers", ->
@@ -645,7 +683,7 @@ describe "Layer", ->
 			layer = new Layer
 			layer.destroy()
 
-			Layer.Layers().should.not.contain layer
+			Framer.CurrentContext.getLayers().should.not.contain layer
 			assert.equal layer._element.parentNode, null
 
 		it "should set text", ->
@@ -657,14 +695,48 @@ describe "Layer", ->
 			layer._elementHTML.innerHTML.should.equal "Hello"
 			layer.ignoreEvents.should.equal true
 
-		it "should set other html", ->
+
+		it "should set interactive html and allow pointer events", ->
+
+			tags = ["input", "select", "textarea", "option"]
+
+			html = ""
+
+			for tag in tags
+				html += "<#{tag}></#{tag}>"
 
 			layer = new Layer
-			layer.html = "<input type=\"button\">"
+			layer.html = html
 
-			layer._element.childNodes[0].should.equal layer._elementHTML
-			layer._elementHTML.innerHTML.should.equal "<input type=\"button\">"
-			layer.ignoreEvents.should.equal false
+			for tag in tags
+				element = layer.querySelectorAll(tag)[0]
+				style = window.getComputedStyle(element)
+				style["pointer-events"].should.equal "auto"
+				# style["-webkit-user-select"].should.equal "auto"
+
+
+		it "should work with querySelectorAll", ->
+
+			layer = new Layer
+			layer.html = "<input type='button' id='hello'>"
+
+			inputElements = layer.querySelectorAll("input")
+			inputElements.length.should.equal 1
+
+			inputElement = _.first(inputElements)
+			inputElement.getAttribute("id").should.equal "hello"
+
+	describe "Force 2D", ->
+
+		it "should switch to 2d rendering", ->
+
+			layer = new Layer
+
+			layer.style.webkitTransform.should.equal "translate3d(0px, 0px, 0px) scale(1) scale3d(1, 1, 1) skew(0deg, 0deg) skewX(0deg) skewY(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+
+			layer.force2d = true
+
+			layer.style.webkitTransform.should.equal "translate(0px, 0px) scale(1) skew(0deg, 0deg) rotate(0deg)"
 
 
 

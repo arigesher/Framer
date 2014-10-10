@@ -48,17 +48,8 @@ class exports.Importer
 
 		importedKey = "#{@paths.documentName}/layers.json.js"
 
-		if window.__imported__?.hasOwnProperty importedKey
+		if window.__imported__?.hasOwnProperty(importedKey)
 			return window.__imported__[importedKey]
-
-		# # For now this does not work in Chrome and we throw an error
-		# try
-		# 	return Framer.Utils.domLoadJSONSync @paths.layerInfo
-		# catch e
-		# 	if Utils.isChrome
-		# 		alert ChromeAlert
-		# 	else
-		# 		throw e
 
 		return Framer.Utils.domLoadJSONSync @paths.layerInfo
 
@@ -85,9 +76,7 @@ class exports.Importer
 		if info.maskFrame
 			layerInfo.frame = info.maskFrame
 			layerInfo.clip = true
-
-		# Todo: smart stuff for paging and scroll views
-
+			
 		# Figure out what the super layer should be. If this layer has a contentLayer
 		# (like a scroll view) we attach it to that instead.
 		if superLayer?.contentLayer
@@ -99,11 +88,19 @@ class exports.Importer
 		layer = new LayerClass layerInfo
 		layer.name = layerInfo.name
 
+		# Set scroll to true if scroll is in the layer name
+		if layerInfo.name.toLowerCase().indexOf("scroll") != -1
+			layer.scroll = true
+
+		# Set draggable enabled if draggable is in the name
+		if layerInfo.name.toLowerCase().indexOf("draggable") != -1
+			layer.draggable.enabled = true
+
 		# A layer without an image, mask or sublayers should be zero
 		if not layer.image and not info.children.length and not info.maskFrame
 			layer.frame = new Frame
 
-		info.children.reverse().map (info) => @_createLayer info, layer
+		_.clone(info.children).reverse().map (info) => @_createLayer info, layer
 
 		# TODODODODOD
 		if not layer.image and not info.maskFrame

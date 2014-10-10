@@ -1,38 +1,45 @@
 Utils = require "./Utils"
 
-exports.Config =
-	
-	# Animation
-	targetFPS: 60
+FramerCSS = """
+body {
+	margin: 0;
+}
 
-	rootBaseCSS:
-		"-webkit-perspective": 1000
-		"position": "absolute"
-		"left": 0
-		"top": 0
-		"right": 0
-		"bottom": 0
-		
-	layerBaseCSS:
-		"display": "block"
-		#"visibility": "visible"
-		"position": "absolute"
-		# "top": "auto"
-		# "right": "auto"
-		# "bottom": "auto"
-		# "left": "auto"
-		# "width": "auto"
-		# "height": "auto"
-		#"overflow": "visible"
-		#"z-index": 0
-		"-webkit-box-sizing": "border-box"
-		"-webkit-user-select": "none"
-		# "cursor": "default"
-		# "-webkit-transform-style": "preserve-3d"
-		# "-webkit-backface-visibility": "visible"
-		#"-webkit-backface-visibility": ""
-		#"-webkit-perspective": 500
-		# "pointer-events": "none"
-		"background-repeat": "no-repeat"
-		"background-size": "cover"
-		"-webkit-overflow-scrolling": "touch"
+.framerContext {	
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.framerLayer {
+	display: block;
+	position: absolute;
+	background-repeat: no-repeat;
+	background-size: cover;
+	-webkit-overflow-scrolling: touch;
+	-webkit-box-sizing: border-box;
+	-webkit-user-select: none;
+}
+
+.framerLayer input,
+.framerLayer textarea,
+.framerLayer select,
+.framerLayer option
+{
+	pointer-events: auto;
+	-webkit-user-select: auto;
+}
+
+.framerDebug {
+	padding: 6px;
+	color: #fff;
+	font: 10px/1em Monaco;
+}
+
+"""
+
+Utils.domComplete -> Utils.insertCSS(FramerCSS)

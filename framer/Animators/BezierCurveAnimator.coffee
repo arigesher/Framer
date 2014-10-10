@@ -29,6 +29,7 @@ class exports.BezierCurveAnimator extends Animator
 		@options = Utils.setDefaultProperties options,
 			values: BezierCurveDefaults["ease-in-out"]
 			time: 1
+			precision: 1/1000
 
 		@_unitBezier = new UnitBezier \
 			@options.values[0],
@@ -49,7 +50,7 @@ class exports.BezierCurveAnimator extends Animator
 		@_unitBezier.solve @_time / @options.time
 
 	finished: ->
-		@_time >= @options.time
+		@_time >= @options.time - @options.precision
 
 
 # WebKit implementation found on http://stackoverflow.com/a/11697909

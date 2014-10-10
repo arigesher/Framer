@@ -11,12 +11,14 @@ Framer.BackgroundLayer = (require "./BackgroundLayer").BackgroundLayer
 Framer.VideoLayer = (require "./VideoLayer").VideoLayer
 Framer.Events = (require "./Events").Events
 Framer.Animation = (require "./Animation").Animation
+Framer.AnimationGroup = (require "./AnimationGroup").AnimationGroup
 Framer.Screen = (require "./Screen").Screen
 Framer.print = (require "./Print").print
 
 _.extend window, Framer if window
 
 # Framer level modules
+Framer.Context = (require "./Context").Context
 Framer.Config = (require "./Config").Config
 Framer.EventEmitter = (require "./EventEmitter").EventEmitter
 Framer.BaseClass = (require "./BaseClass").BaseClass
@@ -27,11 +29,17 @@ Framer.BezierCurveAnimator = (require "./Animators/BezierCurveAnimator").BezierC
 Framer.SpringDHOAnimator = (require "./Animators/SpringDHOAnimator").SpringDHOAnimator
 Framer.SpringRK4Animator = (require "./Animators/SpringRK4Animator").SpringRK4Animator
 Framer.Importer = (require "./Importer").Importer
+Framer.DeviceView = (require "./DeviceView").DeviceView
 Framer.Debug = (require "./Debug").Debug
-Framer.Session = (require "./Session").Session
 Framer.Extras = require "./Extras/Extras"
 
+Framer.Loop = new Framer.AnimationLoop()
+Utils.domComplete Framer.Loop.start
+
 window.Framer = Framer if window
+
+Framer.DefaultContext = new Framer.Context(name:"Default")
+Framer.CurrentContext = Framer.DefaultContext
 
 # Compatibility for Framer 2
 require "./Compat"
@@ -41,5 +49,5 @@ Framer.Extras.MobileScrollFix.enable() if Utils.isMobile()
 
 # Set the defaults
 Defaults = (require "./Defaults").Defaults
+Defaults.setup()
 Framer.resetDefaults = Defaults.reset
-Framer.resetDefaults()

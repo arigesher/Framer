@@ -1,37 +1,35 @@
 Utils = require "./Utils"
 
+{Context} = require "./Context"
+
 ###############################################################
 # Debug overview
 
-_debugLayers = null
+_debugStyle =
+	border: "1px solid rgba(50,150,200,.35)"
+	backgroundColor: "rgba(50,150,200,.35)"
 
-createDebugLayer = (layer) ->
+showDebug = -> 
 
-	overLayer = new Layer
-		frame: layer.screenFrame
-		backgroundColor: "rgba(50,150,200,.35)"
+	for layer in Framer.CurrentContext.getLayers()
+		
+		layer._debugStyle = _.pick(layer.style, _.keys(_debugStyle))
+		layer.style = _debugStyle
 
-	overLayer.style =
-		textAlign: "center"
-		color: "white"
-		font: "10px/1em Monaco"
-		lineHeight: "#{overLayer.height + 1}px"
-		boxShadow: "inset 0 0 0 1px rgba(255,255,255,.5)"
+		layer._debugElement = document.createElement("div")
+		layer._debugElement.innerHTML = layer.name or layer.id
+		layer._debugElement.classList.add("framerDebug")
+		
+		layer._element.appendChild(layer._debugElement)
 
-	overLayer.html = layer.name or layer.id
+hideDebug = ->
+	
+	for layer in Framer.CurrentContext.getLayers()
+		layer.style = layer._debugStyle
+		layer._debugElement.parentElement.removeChild(layer._debugElement)
+		layer._debugElement = null
 
-	overLayer.on Events.Click, (event, layer) ->
-		layer.scale = 0.8
-		layer.animate 
-			properties: {scale:1}
-			curve: "spring(1000,10,0)"
-
-	overLayer
-
-showDebug = -> _debugLayers = Layer.Layers().map createDebugLayer
-hideDebug = -> _debugLayers.map (layer) -> layer.destroy()
-
-toggleDebug = Utils.toggle showDebug, hideDebug
+toggleDebug = Utils.toggle(showDebug, hideDebug)
 
 EventKeys =
 	Shift: 16
@@ -44,11 +42,17 @@ window.document.onkeyup = (event) ->
 ###############################################################
 # Error warning
 
-_errorWarningLayer = null
+_errorContext = null
+_errorShown = false
 
-errorWarning = ->
+errorWarning = (event) ->
 
-	return if _errorWarningLayer
+	if not _errorContext
+		_errorContext = new Context(name:"Error")
+
+	return if _errorShown
+
+	_errorShown = true
 
 	layer = new Layer {x:20, y:-50, width:300, height:40}
 
@@ -77,4 +81,4 @@ errorWarning = ->
 
 	_errorWarningLayer = layer
 
-window.onerror = errorWarning
+window.addEventListener("error", errorWarning)

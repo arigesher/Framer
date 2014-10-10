@@ -1,5 +1,5 @@
 AnimationTime = 0.05
-AnimationProperties = ["x", "y", "rotation"]
+AnimationProperties = ["x", "y", "midY", "rotation"]
 
 describe "LayerAnimation", ->
 
@@ -83,6 +83,21 @@ describe "LayerAnimation", ->
 					layer[p].should.equal 100
 					done()
 
+		it "should animate dynamic properties", (done) ->
+
+			layer = new Layer()
+
+			layer.animate
+				properties:
+					scale: -> layer.scale + 1
+				curve: "linear"
+				time: AnimationTime
+
+			layer.on "end", ->
+				layer.scale.should.equal 2
+				done()
+
+
 
 	describe "Basic", ->
 
@@ -103,9 +118,58 @@ describe "LayerAnimation", ->
 				layer.x.should.be.within(10, 40)
 				done()
 
+		it "should not start animating the same property", ->
 
+			layer = new Layer()
 
+			animationA = new Animation
+				layer: layer
+				properties: {x:50}
+				curve: "linear"
+				time: 0.5
 
+			animationB = new Animation
+				layer: layer
+				properties: {x:50}
+				curve: "linear"
+				time: 0.5
+
+			animationA.start().should.equal true
+			animationB.start().should.equal false
+
+	describe "Context", ->
+
+		it "should list running animations", ->
+
+			layer = new Layer()
+			animation = layer.animate
+				properties: {x: 100}
+				time: 0.5
+
+			layer.animations().should.contain(animation)
+			layer.animateStop()
+			layer.animations().should.not.contain(animation)
+
+		it "should list running animations correctly", (done) ->
+
+			layer = new Layer()
+			
+			animation = layer.animate
+				properties: {x: 100}
+				time: 0.5
+
+			count = 0
+
+			test = ->
+				layer.animations().length.should.equal 0
+				count++
+
+				if count is 2
+					done()
+
+			animation.on "end", test
+			animation.on "stop", test
+			
 
 	describe "Events", ->
 
@@ -191,6 +255,29 @@ describe "LayerAnimation", ->
 					layer.x.should.be.within(30, 50)
 					done()
 
+	describe "Repeat", ->
+
+		it "should start repeatedly", (done) ->
+
+			layer = new Layer()
+
+			animation = new Animation
+				layer: layer
+				properties: {x: -> layer.x + 100}
+				curve: "linear"
+				time: AnimationTime
+				repeat: 5
+
+			animation.start()
+
+			count = 0
+
+			layer.on "end", ->
+				count++
+				if count is animation.options.repeat
+					done()
+
+
 	describe "AnimationLoop", ->
 
 		it "should only stop when all animations are done", (done) ->
@@ -216,7 +303,8 @@ describe "LayerAnimation", ->
 
 			readyLayers = []
 
-			ready = (animation, layer)->
+			ready = (animation, layer) ->
+				
 				(layer in readyLayers).should.equal false
 
 				readyLayers.push layer
@@ -230,6 +318,7 @@ describe "LayerAnimation", ->
 			layerA.on "end", ready
 			layerB.on "end", ready
 			layerC.on "end", ready
+
 
 	describe "Animation", ->
 
